@@ -13,13 +13,8 @@ class Room extends Component {
   constructor(props) {
     super(props);
     this.gravitationalConstant = 0.00000000006673;
-    this.randomColor = ["#jupiter", "#saturn", "#neptune", "#pluto", "#uranus"];
     this.state = {
       time: 0,
-      planets: [
-        { color: "#jupiter", radius: 2, startingPt: 0, timeOffset: 0 },
-        { color: "#neptune", radius: 3, startingPt: 0.9, timeOffset: 0 }
-      ],
       visible: false
     };
     this.r = 5;
@@ -36,15 +31,17 @@ class Room extends Component {
       });
     }, 30);
 
-    window.addEventListener("keydown", e => {
-      if (e.key === "p") {
-        this.addPlanet();
-      }
-    });
+    window.addEventListener('keydown', e => {
+      if (e.key === 'p') {
+        this.props.addPlanet();
 
-    window.addEventListener("onClick", e => {
-      console.log(e.target);
-      // if (e.target.className)
+        const dataChannel = this.props.rtcDataChannel;
+        const planets = this.props.planets;
+
+        if ( dataChannel ) {
+          dataChannel.send(JSON.stringify(planets[planets.length-1]));
+        }
+      }
     });
   }
 
@@ -53,24 +50,9 @@ class Room extends Component {
   };
 
   closeMenu = () => {
-    console.log("close menu", this.state.visible);
     if (this.state.visible) {
       this.toggleMenu();
     }
-  };
-
-  addPlanet = () => {
-    const newPlanet = {
-      color: this.randomColor[
-        Math.trunc(Math.random() * this.randomColor.length)
-      ],
-      radius: Math.random() * 5 + 2,
-      startingPt: 0,
-      timeOffset: Math.random() * 100
-    };
-    this.setState({ planets: [...this.state.planets, newPlanet] }, () => {
-      console.log(this.state.planets);
-    });
   };
 
   render() {
@@ -93,7 +75,7 @@ class Room extends Component {
             addText={this.addText}
             addText2={this.addText2}
             handleColorPicker={this.colorHandler}
-            addPlanet={this.addPlanet}
+            addPlanet={this.props.addPlanet}
           />
         </Sidebar>
         <Sidebar.Pusher>
@@ -150,7 +132,7 @@ class Room extends Component {
                     position="0.25 1 8"
                     text="anchor: left; width: 1.5; color: white; value: [KEPLER'S LAW OF EQUAL AREAS] A planet moves fastest when it is closest to the sun and slowest when it is furthest from the sun."
                   />
-                  {this.state.planets.map(planet => (
+                  {this.props.planets.map(planet => (
                     <a-entity id="planet">
                       <a-sphere
                         radius="0.2"
